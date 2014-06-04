@@ -6,3 +6,6 @@ out
 /.project
 /build
 /.gradle
+*.iml
+*.ipr
+*.iws
