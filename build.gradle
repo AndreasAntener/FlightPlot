@@ -1,0 +1,80 @@
+// ========================== GLOBAL CONFIG ==========================
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+
+    sourceCompatibility = 1.7
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['src']
+            }
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+ext {
+    libraries = [
+        la4j: 'org.la4j:la4j:0.5.0'
+    ]
+}
+
+// ========================== jMAVlib ==========================
+project(':jMAVlib') {
+    dependencies {
+        compile libraries.la4j
+    }
+}
+
+// ========================== FlightPlot ==========================
+version = '1.0.0-SNAPSHOT'
+
+configurations {
+    javac2
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': name,
+                'Implementation-Version': version,
+                'Main-Class': 'me.drton.flightplot.FlightPlot'
+    }
+
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+dependencies {
+    compile libraries.la4j
+    compile fileTree(dir: 'lib', include: '*.jar')
+    compile project(':jMAVlib')
+
+    javac2 files(
+            'lib/forms_rt.jar',
+            'lib/javac2.jar',
+            'lib/annotations.jar',
+            'lib/asm4-all.jar',
+            'lib/jdom.jar'
+    )
+}
+
+// adding IDEA javac2 ant task for compilation
+// TODO: overwrite original compile task (currently compilation is done twice)
+compileJava.doLast {
+    println('Compiling with com.intellij.ant.Javac2')
+    println sourceSets.main.java.srcDirs
+    ant.taskdef(name: 'javac2', classname: 'com.intellij.ant.Javac2', classpath: configurations.javac2.asPath)
+    ant.javac2(destdir: sourceSets.main.output.classesDir, includeantruntime: 'false', debug: 'true', source: sourceCompatibility) {
+        classpath(path: configurations.compile.asPath)
+        sourceSets.main.java.srcDirs.each {
+            src(path: it)
+        }
+    }
+}
+
