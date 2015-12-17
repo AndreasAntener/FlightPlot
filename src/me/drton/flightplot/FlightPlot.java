@@ -9,8 +9,10 @@ import me.drton.flightplot.processors.ProcessorsList;
 import me.drton.flightplot.processors.Simple;
 import me.drton.jmavlib.log.FormatErrorException;
 import me.drton.jmavlib.log.LogReader;
+import me.drton.jmavlib.log.MAVLinkLogReader;
 import me.drton.jmavlib.log.px4.PX4LogReader;
 import me.drton.jmavlib.log.ulog.ULogReader;
+import me.drton.jmavlib.mavlink.MAVLinkSchema;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -270,7 +272,8 @@ public class FlightPlot {
         // Open Log Dialog
         FileNameExtensionFilter[] logExtensionfilters = new FileNameExtensionFilter[]{
                 new FileNameExtensionFilter("PX4/APM Log (*.px4log, *.bin)", "px4log", "bin"),
-                new FileNameExtensionFilter("ULog (*.ulg)", "ulg")
+                new FileNameExtensionFilter("ULog (*.ulg)", "ulg"),
+                new FileNameExtensionFilter("MAVLink Logs (*.mavlink)", "mavlink")
         };
 
         openLogFileChooser = new JFileChooser();
@@ -805,6 +808,8 @@ public class FlightPlot {
                 logReaderNew = new PX4LogReader(logFileName);
             } else if (logFileNameLower.endsWith(".ulg")) {
                 logReaderNew = new ULogReader(logFileName);
+            } else if (logFileNameLower.endsWith(".mavlink")) {
+                logReaderNew = new MAVLinkLogReader(logFileName, new MAVLinkSchema("common.xml"));
             } else {
                 setStatus("Log format not supported: " + logFileName);
                 return;
