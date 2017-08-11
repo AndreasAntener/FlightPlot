@@ -2,6 +2,7 @@ package me.drton.flightplot.processors;
 
 import me.drton.jmavlib.conversion.RotationConversion;
 
+import javax.vecmath.Matrix3d;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,15 +12,19 @@ import java.util.Map;
 public class EulerFromQuaternion extends PlotProcessor {
     private String[] param_Fields;
     private double param_Scale;
+    private double param_pitch_rotation;
     private boolean[] show;
     private double[] q;
+    private Matrix3d rot_q;
+    private Matrix3d rot_target;
 
     @Override
     public Map<String, Object> getDefaultParameters() {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("Fields", "ATT.Q0 ATT.Q1 ATT.Q2 ATT.Q3");
+        params.put("Fields", "ATT.qw ATT.qx ATT.qy ATT.qz");
         params.put("Show", "RPY");
         params.put("Scale", 1.0);
+        params.put("Pitch Rot", 0.0);
         return params;
     }
 
@@ -28,6 +33,7 @@ public class EulerFromQuaternion extends PlotProcessor {
         q = new double[4];
         param_Fields = ((String) parameters.get("Fields")).split(WHITESPACE_RE);
         param_Scale = (Double) parameters.get("Scale");
+        param_pitch_rotation = (Double) parameters.get("Pitch Rot");
         String showStr = ((String) parameters.get("Show")).toUpperCase();
         show = new boolean[]{false, false, false};
         String[] axes = new String[]{"Roll", "Pitch", "Yaw"};
@@ -38,6 +44,8 @@ public class EulerFromQuaternion extends PlotProcessor {
                 addSeries(axisName);
             }
         }
+        rot_q = new Matrix3d();
+        rot_target = new Matrix3d();
     }
 
     @Override
@@ -52,7 +60,13 @@ public class EulerFromQuaternion extends PlotProcessor {
             }
             q[i] = v.doubleValue();
         }
-        double[] euler = RotationConversion.eulerAnglesByQuaternion(q);
+
+        // Rotate with pitch if set
+        rot_q.set((RotationConversion.rotationMatrixByQuaternion(q)));
+        rot_target.set(RotationConversion.rotationMatrixByEulerAngles(0, Math.toRadians(param_pitch_rotation), 0));
+        rot_q.mul(rot_target);
+
+        double[] euler = RotationConversion.eulerAnglesByRotationMatrix(rot_q);
         int plot_idx = 0;
         for (int axis = 0; axis < 3; axis++) {
             if (show[axis]) {
