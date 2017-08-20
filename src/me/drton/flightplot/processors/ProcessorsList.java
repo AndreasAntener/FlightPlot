@@ -2,6 +2,7 @@ package me.drton.flightplot.processors;
 
 import me.drton.flightplot.ColorSupplier;
 import me.drton.flightplot.ProcessorPreset;
+import org.omg.Dynamic.Parameter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public class ProcessorsList {
         addProcessorClass(PositionEstimatorKF.class);
         addProcessorClass(EulerFromQuaternion.class);
         addProcessorClass(Text.class);
+        addProcessorClass(ParameterUpdate.class);
     }
 
     private void addProcessorClass(Class<? extends PlotProcessor> processorClass) {

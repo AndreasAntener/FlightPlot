@@ -15,6 +15,7 @@ import me.drton.jmavlib.log.ulog.ULogReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -1182,6 +1183,7 @@ public class FlightPlot {
                 }
             }
             chart.getXYPlot().clearDomainMarkers();
+            chart.getXYPlot().clearAnnotations();
 
             if (logReader instanceof ULogReader) {
                 Map<String, List<ULogReader.ParamUpdate>> updateMap = ((ULogReader) logReader).parameterUpdates;
@@ -1223,11 +1225,17 @@ public class FlightPlot {
                         XYSeries jseries = new XYSeries(markers.getFullTitle(processorTitle), false);
                         dataset.addSeries(jseries);
                         for (Marker marker : markers) {
+                            // shift text with a space to make it not stick at the border
+                            XYTextAnnotation updateLabel = new XYTextAnnotation(" " + marker.label, marker.x * timeScale,
+                                    chart.getXYPlot().getRangeAxis().getRange().getUpperBound());
+                            updateLabel.setFont(new Font("Sans Serif", Font.PLAIN, 10));
+                            updateLabel.setRotationAnchor(TextAnchor.TOP_LEFT);
+                            updateLabel.setTextAnchor(TextAnchor.TOP_LEFT);
+                            updateLabel.setRotationAngle(Math.PI / 2);
+                            updateLabel.setPaint(Color.black);
+                            chart.getXYPlot().addAnnotation(updateLabel);
+
                             TaggedValueMarker m = new TaggedValueMarker(i, marker.x * timeScale);
-                            m.setPaint(Color.black);
-                            m.setLabel(marker.label);
-                            m.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
-                            m.setLabelTextAnchor(TextAnchor.TOP_LEFT);
                             chart.getXYPlot().addDomainMarker(0, m, Layer.BACKGROUND, false);
                         }
                     }
